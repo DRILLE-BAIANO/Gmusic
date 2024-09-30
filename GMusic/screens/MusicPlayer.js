@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import Slider from '@react-native-community/slider'
 import { Ionicons } from '@expo/vector-icons'
+import { Audio } from 'expo-av'
 import songs from '../model/data'
 
 const { width, height } = Dimensions.get('window');
@@ -19,6 +20,7 @@ const { width, height } = Dimensions.get('window');
 const MusicPlayer = () => {
     const [sound, setSound] = useState(null);
     const [songIndex, setSongIndex] = useState(0);
+    const [songStatus, setSongStatus] = useState(null);
     const [isPlaying,setIsPlayng] = useState(false);
 
     const songSlider = useRef(null);
@@ -45,10 +47,23 @@ const MusicPlayer = () => {
     const loadSound = async () => {
         const { sound } = await Audio.Sound.createAsync(songs[songIndex].url);
         setSound(sound);
+        const status = await sound.getStatusAsync();
         setIsPlayng(false);
+        setIsPlayng(false);
+    };
+    useEffect(() => {
+        if(sound) {
+          sound.unloadAsync();
     }
-
-    const skipToNext = () => {
+    loadSound();
+    return () => {
+        if(sound) {
+            sound.unloadAsync();
+        }
+    };
+  }, [songIndex]);
+    
+  const skipToNext = () => {
         songSlider.current.scrollToOffset({
             offset: (songIndex + 1) * width
         });
@@ -61,7 +76,26 @@ const MusicPlayer = () => {
     };
 
     const handlePlayPause = async () => {
+        if (isPlaying) {
+            await Pause();
+        } else {
+            await isPlaying();
+        }
     };
+    
+    const play = async () =>{
+        if (sound) {
+            setIsPlayng(true);
+            await sound.playAsync();
+        }
+    }
+
+    const pause = async () => {
+        if (sound) {
+            setIsPlayng(false);
+            await sound.playAsync();
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -127,7 +161,7 @@ const MusicPlayer = () => {
 
             </View>
             <View style={styles.footer}>
-                <View style={styles.iconWrapper}>
+                <View style={styles.iconWrapper}>-
                     <TouchableOpacity>
                         <Ionicons name='heart-outline' size={30} color="#888888" />
                     </TouchableOpacity>
